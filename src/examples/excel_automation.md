@@ -1,5 +1,7 @@
 # Excel automation
 
+> **_NOTE:_** This script must be run in an open BAFU database — the free database available [here](https://nexus.openlca.org/downloads).
+
 This example shows how a tedious task can be automated using a spreadsheet and Jython.
 
 Our use case is the following:
@@ -9,17 +11,9 @@ Our use case is the following:
 - We want to store the results in a new sheet in the same spreadsheet.
 
 An example spreadsheet can be downloaded [here](excel_automation.xlsx). It provides a list of
-processes from the _ecoinvent v3.10.1 APOS_ database.
+processes from the _BAFU_ database.
 
-To follow this example with the full script, copy the content of this [file](excel_automation.py).
-
-## Open the spreadsheet and gather the UUIDs
-
-Checkout the [Integration with Excel](../user_guide/excel) chapter for more details about how to
-open the spreadsheet.
-
-The following code snippet will read the processes' name, UUIDS and amounts from the first sheet
-named "Processes". The callback function will print the process information to the console.
+Checkout the [Excel](../excel) chapter for more details about how to open the spreadsheet.
 
 ```python
 import string
@@ -27,33 +21,37 @@ import string
 from java.io import FileInputStream, FileOutputStream
 from org.apache.poi.ss.usermodel import WorkbookFactory
 
-
 # Do not forget to edit this path to point to your XLSX file!
-PATH = "/path/to/excel/excel_automation.xlsx"
+PATH = "path/to/excel_automation.xlsx"
+IMPACT_METHOD_ID = "IMPACT_METHOD_ID"
 
-# Load the workbook from the file (using FileInputStream to be able to later write to it)
+# loads the workbook from the file, we are using a FileInputStream to be able to later write to it
 input_stream = FileInputStream(PATH)
 workbook = WorkbookFactory.create(input_stream)
 
-# Get the Processes sheet
+# get the Processes sheet
 sheet = workbook.getSheet("Processes")
 
 
-# This function is an helper to use the cell names (A1, B1, C1, etc.) instead of their index
 def get_cell(sheet, column, row):  # type: (XSSFSheet, str, int) -> XSSFCell
+    """This function is an helper to use the cell names (A1, B1, C1, etc.) instead of their index."""
     column_label = string.ascii_uppercase.index(column)
     return sheet.getRow(row).getCell(column_label)
 
 
 def get_string_cell(sheet, column, row):  # type: (XSSFSheet, str, int) -> str
+    """Retrieve the string value of a cell"""
     return get_cell(sheet, column, row).getStringCellValue()
 
 
 def get_numeric_cell(sheet, column, row):  # type: (XSSFSheet, str, int) -> float
+    """Retrieve the numeric value of a cell"""
     return get_cell(sheet, column, row).getNumericCellValue()
 
 
 def get_process_info(sheet):  # sheet: XSSFSheet -> Generator[dict[str, str or float]]:
+    """Returns a generator that iterates over the rows of the sheet and returns a dictionary
+    with the process name, amount and UUID."""
     for i in range(1, sheet.getLastRowNum() + 1):
         name = get_string_cell(sheet, "A", i)
         amount = get_numeric_cell(sheet, "B", i)
@@ -61,23 +59,8 @@ def get_process_info(sheet):  # sheet: XSSFSheet -> Generator[dict[str, str or f
         yield {"name": name, "amount": amount, "uuid": uuid}
 
 
-for process in get_process_info(sheet):
-    print(process)
-
-workbook.close()
-```
-
-## Create product systems and run impact calculations
-
-Now that we have access the processes information, we can modify the script so that we create
-product systems and run impact calculations on them. The following code snippet will create a
-product system for each process and run impact calculations on it. The results are then printed to
-the console.
-
-```python
-IMPACT_METHOD_ID = "67371e90-e11b-44e2-b7aa-039816c4e281"
-
 def product_system_from_process(uuid):  # type: (str) -> ProductSystem
+    """Create a product system from a process UUID"""
     process = db.get(Process, uuid)
     if not isinstance(process, Process):
         raise Exception("Process not found: " + uuid)
@@ -92,6 +75,7 @@ def product_system_from_process(uuid):  # type: (str) -> ProductSystem
 
 
 def result_of_system(system, amount):  # type: (ProductSystem, float) -> Result
+    """Run an impact calculation on a product system"""
     method = db.get(ImpactMethod, IMPACT_METHOD_ID)
     setup = CalculationSetup.of(system).withAmount(amount).withImpactMethod(method)
 
@@ -101,6 +85,7 @@ def result_of_system(system, amount):  # type: (ProductSystem, float) -> Result
 def impacts_of(
     process,
 ):  # type: (dict[str, str or float]) -> Generator[dict[str, float or str]]
+    """Returns a generator that iterates over the impacts of a process and returns a dictionary"""
     system = product_system_from_process(process["uuid"])
     result = result_of_system(system, process["amount"])
     for impact in result.getTotalImpacts():
@@ -109,6 +94,7 @@ def impacts_of(
             "value": impact.value(),
             "unit": impact.impact().referenceUnit,
         }
+
 
 def run_calculations(sheet):
     for process in get_process_info(sheet):
@@ -119,15 +105,7 @@ def run_calculations(sheet):
                 % (impact["name"], impact["value"], impact["unit"])
             )
 
-run_calculations(sheet)
-```
 
-## Store the results in a new sheet
-
-Now that we have the results, we can store them in sheets. Let's modify the callback function so
-that it creates a new sheet for each process and stores the results in it.
-
-```python
 def get_or_create_sheet(workbook, name):  # type: (XSSFWorkbook, str) -> XSSFSheet
     sheet = workbook.getSheet(name)
     if sheet is None:
@@ -160,16 +138,21 @@ for process in get_process_info(sheet):
     impacts = list(impacts_of(process))
     write_impacts_to_sheet(sheet, impacts)
 
-# Write the workbook content to the file
+# write the workbook content to the file
 output_stream = FileOutputStream(PATH)
 workbook.write(output_stream)
 
-# Close the input and output streams to ensure data is properly saved
+# close the input and output streams to ensure data is properly saved
 input_stream.close()
 output_stream.close()
 
-# Close the workbook to free resources
+# close the workbook to free resources
 workbook.close()
+
+# refresh the navigator — only necessary if you change this script to persist the
+# product systems to the database (e.g. via ProductSystemBuilder.update(db, system));
+# as written, nothing is saved, so there is nothing new to show
+App.runInUI("Refresh navigator", lambda: Navigator.refresh())
 
 print("Done")
 ```
