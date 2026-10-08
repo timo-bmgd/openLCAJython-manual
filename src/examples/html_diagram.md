@@ -1,12 +1,13 @@
 # Display a diagram with HTML
 
-> **_NOTE:_** This script must be run in an open BAFU database — a free, populated database available on [Nexus](https://nexus.openlca.org/downloads). See [Set up a database](../set_up_a_database.md).
+> **_NOTE:_** This script must be run in an open BAFU database — a free, populated database
+> available on [Nexus](https://nexus.openlca.org/downloads). See
+> [Set up a database](../set_up_a_database.md).
 
 The following example shows how to display data in a diagram using HTML. In the example, all output
 amounts of `Emission to air/low population density/Zinc II` and
-`Emission to air/low population density/Cadmium II`
-are collected from a database, transformed with `f(x) = log10(x * 1e15)` to make a nice
-distribution, and shown in a histogram using the
+`Emission to air/low population density/Cadmium II` are collected from a database, transformed with
+`f(x) = log10(x * 1e15)` to make a nice distribution, and shown in a histogram using the
 [Google Chart API](https://developers.google.com/chart/interactive/docs/gallery/histogram). An HTML
 page is generated that is loaded in a SWT `Browser` in a separate window.
 
@@ -134,8 +135,8 @@ def main():
 App.runInUI("Visualizing Metal Emission Levels", main)
 ```
 
-To see the result, copy and paste the code above in the openLCA Python console in an opened
-BAFU database.
+To see the result, copy and paste the code above in the openLCA Python console in an opened BAFU
+database.
 
 The result looks like this:
 

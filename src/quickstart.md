@@ -31,8 +31,8 @@ This is the basic cycle: write a script, run it, and read the output in the cons
 
 ## Read from your database
 
-This script reads from your database, so openLCA must be open with a database loaded. If you do not have
-one yet, see [Set up a database](set_up_a_database.md) first.
+This script reads from your database, so openLCA must be open with a database loaded. If you do not
+have one yet, see [Set up a database](set_up_a_database.md) first.
 
 ```python
 # Remember to run this with a database open
@@ -40,8 +40,8 @@ flows = db.getAll(Flow)
 print("Your database contains %d flows." % len(flows))
 ```
 
-Two details are worth noting. `db` refers to the open database and is always available; you do not need
-to set it up. And `Flow` is used without an `import`: openLCA makes its data model available
+Two details are worth noting. `db` refers to the open database and is always available; you do not
+need to set it up. And `Flow` is used without an `import`: openLCA makes its data model available
 automatically. Both are explained in [Technical details](how_scripts_run.md).
 
 ## Where to go next

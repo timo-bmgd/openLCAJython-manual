@@ -15,8 +15,8 @@ needed:
   `ParameterScope`, `ModelType`
 - **Parameter redefinitions** — `ParameterRedef`, `ParameterRedefSet`
 - **Calculation & results** — `CalculationSetup`, `SystemCalculator`, `LcaResult`, `TechFlow`,
-  `TechFlowValue`, `EnviFlow`, `EnviFlowValue`, `ImpactValue`, `UpstreamTree`, `UpstreamNode`, `Sankey`,
-  `AnalysisGroupResult`, `TechIndex`, `EnviIndex`, `NwSetTable`
+  `TechFlowValue`, `EnviFlow`, `EnviFlowValue`, `ImpactValue`, `UpstreamTree`, `UpstreamNode`,
+  `Sankey`, `AnalysisGroupResult`, `TechIndex`, `EnviIndex`, `NwSetTable`
 - **Building product systems** — `ProductSystemBuilder`, `LinkingConfig`, `ProviderLinking`
 - **Descriptors** — `Descriptor`, `RootDescriptor`, `FlowDescriptor`, `LocationDescriptor`,
   `ImpactDescriptor`
@@ -66,9 +66,9 @@ You can add your own Jython-compatible `.py` modules and import them. See
 
 - **Packages from PyPI are not installed** — there is no `pip` in the openLCA Python editor, so
   third-party packages are not available unless you add pure-Python modules yourself (see above).
-- **Libraries with C extensions do not work at all** — because Jython runs on the JVM, it cannot load
-  CPython C extensions. This rules out the scientific stack: **NumPy, Pandas, SciPy** and anything that
-  depends on them. `pandas` cannot run in Jython.
+- **Libraries with C extensions do not work at all** — because Jython runs on the JVM, it cannot
+  load CPython C extensions. This rules out the scientific stack: **NumPy, Pandas, SciPy** and
+  anything that depends on them. `pandas` cannot run in Jython.
 
 If you need NumPy, Pandas or similar, run your analysis in regular (C)Python and connect to openLCA
 through the [openLCA IPC Python API](https://greendelta.github.io/openLCA-ApiDoc/) instead.
